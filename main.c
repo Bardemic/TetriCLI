@@ -31,9 +31,10 @@ int checkCollisionLR(struct Block curBlock, int (*array)[COLS], int direction /*
 void shiftBlock(struct Block *curBlock, int (*array)[COLS], int direction /*1 for right, -1 for left*/);
 
 
+int score = 0;
+int level = 1;
 int main(int argc, char *argv[]){
     int xButton, circleButton, triangleButton, squareButton;
-    int score = 0;
     double timePassed = 0;
     double timeToPass = 0.5;
     struct Block b1 = blocks[rand() % 5];
@@ -111,6 +112,7 @@ void tetrisCheck(int (*array)[COLS]){
             }
         }
         if(total == COLS){
+            score += 100 * level; //number is from single line clear based off wikipedia's tetris scoring, probably will change if i care
             for(int j = i - 1; j >= 0; j--){
                 for(int k = 0; k < COLS; k++) {
                     array[j + 1][k] = array[j][k];
