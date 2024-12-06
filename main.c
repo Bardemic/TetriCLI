@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define ROWS 8
+#define ROWS 5
 #define COLS 6
 #define BLOCK 4
 #define EMPTY 0
@@ -26,23 +26,29 @@ void tetrisCheck(int (*array)[COLS]);
 void placeBlock(int (*array)[COLS]);
 int checkCollisionDrop(int (*array)[COLS]);
 void printGame(int (*array)[COLS], int score);
-int playGame();
+int Menu();
 int checkCollisionLR(int (*array)[COLS], int direction /*1 for right, -1 for left*/);
 void shiftBlock(int (*array)[COLS], int direction /*1 for right, -1 for left*/);
+void checkGameOver(int (*array)[COLS]);
 
-
-int score = 0;
-int level = 1;
+int score;
+int level;
+int gameOver;
+double timePassed;
+double timeToPass;
 struct Block curBlock;
 struct Block nextBlock;
 int main(int argc, char *argv[]){
     int xButton, circleButton, triangleButton, squareButton;
-    double timePassed = 0;
-    double timeToPass = 0.5;
     curBlock = blocks[rand() % 5];
     nextBlock = blocks[rand() % 5];
 
-    if(playGame()){
+    while(Menu()){
+        score = 0;
+        level = 1;
+        gameOver = 0;
+        timePassed = 0;
+        timeToPass = 0.5;
         int game_array[ROWS][COLS];
         for(int i = 0; i < ROWS; i++){
             for(int j = 0; j < COLS; j++){
@@ -50,7 +56,7 @@ int main(int argc, char *argv[]){
             }
             printf("\n");
         }
-        while(1){
+        while(!gameOver){
             
             timePassed += 0.000000005;
             if(timePassed >= timeToPass){
@@ -65,6 +71,7 @@ int main(int argc, char *argv[]){
             }
             
         }
+        printf("Game Over\n");
 
     }
 
@@ -103,10 +110,17 @@ void dropBlock(int (*array)[COLS]){
     }
     else {
         curBlock = nextBlock;
+        checkGameOver(array);
         nextBlock = blocks[rand() % 5];
     }
 }
-
+void checkGameOver(int (*array)[COLS]){
+    for(int i = 0; i < 4; i++){
+        if(array[0][curBlock.shape[i][1] + curBlock.xPosition] == BLOCK){
+            gameOver = 1;
+        }
+    }
+}
 void tetrisCheck(int (*array)[COLS]){
     for(int i = 0; i < ROWS; i++){
         int total = 0;
@@ -227,7 +241,7 @@ void printGame(int (*array)[COLS], int score){
 }
 
 
-int playGame(){
+int Menu(){
     int answer;
     printf("1 to play, 0 to quit\n");
     scanf("%d", &answer);
