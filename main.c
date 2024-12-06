@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 #define ROWS 8
-#define COLS 6
+#define COLS 7
 #define BLOCK 4
 #define EMPTY 0
 struct Block {
@@ -13,18 +13,18 @@ struct Block {
 };
 
 struct Block blocks[] = {
-    {COLS / 2, 0, {{0,0}, {0,1}, {0,2}, {0,3}}},
-    {COLS / 2, 0, {{0,0}, {1,0}, {0,1}, {1,1}}},
-    {COLS / 2, 0, {{0,0}, {1,0}, {1,1}, {1,2}}},
-    {COLS / 2, 0, {{1,0}, {1,1}, {1,2}, {0,2}}},
-    {COLS / 2, 0, {{0,1}, {1,0}, {1,1}, {1,2}}}
+    {COLS / 3, 0, {{0,0}, {0,1}, {0,2}, {0,3}}},
+    {COLS / 3, 0, {{0,0}, {1,0}, {0,1}, {1,1}}},
+    {COLS / 3, 0, {{0,0}, {1,0}, {1,1}, {1,2}}},
+    {COLS / 3, 0, {{1,0}, {1,1}, {1,2}, {0,2}}},
+    {COLS / 3, 0, {{0,1}, {1,0}, {1,1}, {1,2}}}
 };
 
 
 void dropBlock(struct Block *curBlock, int (*array)[COLS]);
 void tetrisCheck(int (*array)[COLS]);
 void placeBlock(int (*array)[COLS], struct Block curBlock);
-int checkCollision(int (*array)[COLS], struct Block curBlock);
+int checkCollisionDrop(struct Block curBlock, int (*array)[COLS]);
 void printGame(int (*array)[COLS]);
 int playGame();
 
@@ -32,21 +32,21 @@ int playGame();
 
 int main(int argc, char *argv[]){
     int xButton, circleButton, triangleButton, squareButton;
+    struct Block b1 = blocks[rand() % 5];
 
     if(playGame()){
-        int my_array[ROWS][COLS];
+        int game_array[ROWS][COLS];
         for(int i = 0; i < ROWS; i++){
             for(int j = 0; j < COLS; j++){
-                my_array[i][j] = EMPTY;
+                game_array[i][j] = EMPTY;
             }
             printf("\n");
         }
-        struct Block b1 = blocks[1];
         while(1){
             
-            placeBlock(my_array, b1);
-            printGame(my_array);
-            dropBlock(&b1, my_array);
+            placeBlock(game_array, b1);
+            printGame(game_array);
+            dropBlock(&b1, game_array);
             sleep(1);
             
         }
@@ -62,14 +62,18 @@ int main(int argc, char *argv[]){
 void dropBlock(struct Block *curBlock, int (*array)[COLS]){
     int count = 0;
     for(int i = 0; i < 4; i++){
-        if(checkCollision(array, *curBlock)){
+        if(checkCollisionDrop(*curBlock, array)){
             count += 1;
         }
     }
     if(count == 0){
         for(int i = 0; i < 4; i++){
+            array[curBlock->shape[i][0] + curBlock->yPosition][curBlock->shape[i][1] + curBlock->xPosition] = EMPTY;
             curBlock->shape[i][0]++;
         }
+    }
+    else {
+        *curBlock = blocks[rand() % 5];
     }
 }
 
@@ -97,22 +101,28 @@ void tetrisCheck(int (*array)[COLS]){
     }
 }
 
-int checkCollision(int (*array)[COLS], struct Block curBlock){
+int checkCollisionDrop(struct Block curBlock, int (*array)[COLS]){
     for(int i = 0; i < 4; i++){
         int curRow = curBlock.shape[i][0] + curBlock.yPosition;
-        int curCol = curBlock.shape[i][1] + curBlock.xPosition;
-        if(curRow + 1 >= ROWS || curCol + 1 >= COLS || curCol < 0){
+        if(curRow + 1 >= ROWS){
             return 1;
         }
+        if(array[curRow + 1][curBlock.shape[i][1] + curBlock.xPosition] == BLOCK){
+            int testCount = 0; //is 0 when block in the row beneath is not in the current full Block, is 1 when it is
+            for(int j = 0; j < 4; j++){
+                if(curBlock.shape[j][0] == curRow + 1 && curBlock.shape[j][1] + curBlock.xPosition == curBlock.shape[i][1] + curBlock.xPosition){
+                    testCount++;
+                }
+            }
+            if(testCount != 1){
+                return 1;
+            }
+        }   
     }
     return 0;
 }
 void placeBlock(int (*array)[COLS], struct Block curBlock){
-    for(int i = 0; i < ROWS; i++){
-        for(int j = 0; j < COLS; j++){
-            array[i][j] = EMPTY;
-        }
-    }
+    //remove ghosts
     for(int i = 0; i < 4; i++){
         array[curBlock.shape[i][0] + curBlock.yPosition][curBlock.shape[i][1] + curBlock.xPosition] = BLOCK;
     }
