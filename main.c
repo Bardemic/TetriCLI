@@ -4,7 +4,6 @@
 #include <string.h>
 #include <time.h>
 
-
 #define BLOCK 4
 #define EMPTY 0
 #define MAX_SCORES 100
@@ -47,6 +46,8 @@ void addLeaderboardEntry();
 void printLeaderboard();
 void openSettings();
 void dropBlockStraight(int (*array)[COLS]);
+void playGameAudio();
+void stopGameAudio();
 int numScores = 0;
 int score;
 int level;
@@ -56,6 +57,7 @@ double timeToPass;
 double timeIncrements;
 struct Block curBlock;
 struct Block nextBlock;
+int playAudio = 1;
 struct LeaderboardEntry leaderboard[MAX_SCORES];
 int main(int argc, char *argv[]){
     readLeaderboard();
@@ -66,6 +68,7 @@ int main(int argc, char *argv[]){
     nextBlock.xPosition = COLS / 3;
 
     while(Menu()){
+        playGameAudio();
         score = 0;
         level = 1;
         gameOver = 0;
@@ -99,6 +102,7 @@ int main(int argc, char *argv[]){
             }
             
         }
+        stopGameAudio();
         printf("Game Over\n");
         addLeaderboardEntry();
 
@@ -274,8 +278,8 @@ void printGame(int (*array)[COLS], int score){
 
 void openSettings(){
     int answer;
-    while(answer != 3){
-        printf("Press 1 to change rows, 2 to change columns, 3 to go back\n");
+    while(answer != 4){
+        printf("Press 1 to change rows, 2 to change columns, 3 to toggle audio, 4 to go back\n");
         scanf("%d", &answer);
         if(answer == 1){
             printf("Enter new number of rows: ");
@@ -284,6 +288,9 @@ void openSettings(){
         else if(answer == 2){
             printf("Enter new number of columns: ");
             scanf("%d", &COLS);
+        }
+        else if(answer == 3){
+            playAudio *= -1;
         }
     }
 }
@@ -298,8 +305,8 @@ void dropBlockStraight(int (*array)[COLS]){
 }
 
 int Menu(){
-    int answer;
-    while(answer != 1){
+    int answer = 2;
+    while(answer > 1){
         printf("1 to play, 2 for leaderboard, 3 for settings, 0 to quit\n");
         scanf("%d", &answer);
         if(answer == 2){
@@ -389,4 +396,38 @@ void printLeaderboard() {
         );
     }
     printf("\n");
+}
+
+
+void stopGameAudio() {
+    FILE *fp;
+    char command[100];
+    
+    snprintf(command, sizeof(command), "pkill mpg123");
+    
+    fp = popen(command, "r");
+    if (fp == NULL) {
+        printf("Failed to stop audio\n");
+        return;
+    }
+    
+    pclose(fp);
+}
+
+void playGameAudio() {
+    if(playAudio == 0){
+        return;
+    }
+    FILE *fp;
+    char command[100];
+    
+    snprintf(command, sizeof(command), "mpg123 -q game_audio.mp3 > /dev/null 2>&1 &");
+    
+    fp = popen(command, "r");
+    if (fp == NULL) {
+        printf("Failed to play audio\n");
+        return;
+    }
+    
+    pclose(fp);
 }
