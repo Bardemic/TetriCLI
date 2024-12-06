@@ -4,8 +4,7 @@
 #include <string.h>
 #include <time.h>
 
-#define ROWS 5
-#define COLS 6
+
 #define BLOCK 4
 #define EMPTY 0
 #define MAX_SCORES 100
@@ -23,13 +22,15 @@ struct Block {
 };
 
 struct Block blocks[] = {
-    {COLS / 3, 0, {{0,0}, {0,1}, {0,2}, {0,3}}},
-    {COLS / 3, 0, {{0,0}, {1,0}, {0,1}, {1,1}}},
-    {COLS / 3, 0, {{0,0}, {1,0}, {1,1}, {1,2}}},
-    {COLS / 3, 0, {{1,0}, {1,1}, {1,2}, {0,2}}},
-    {COLS / 3, 0, {{0,1}, {1,0}, {1,1}, {1,2}}}
+    {0, 0, {{0,0}, {0,1}, {0,2}, {0,3}}},
+    {0, 0, {{0,0}, {1,0}, {0,1}, {1,1}}},
+    {0, 0, {{0,0}, {1,0}, {1,1}, {1,2}}},
+    {0, 0, {{1,0}, {1,1}, {1,2}, {0,2}}},
+    {0, 0, {{0,1}, {1,0}, {1,1}, {1,2}}}
 };
 
+int ROWS = 5;
+int COLS = 5;
 
 void dropBlock(int (*array)[COLS]);
 void tetrisCheck(int (*array)[COLS]);
@@ -44,6 +45,7 @@ void readLeaderboard();
 void writeLeaderboard();
 void addLeaderboardEntry();
 void printLeaderboard();
+void openSettings();
 int numScores = 0;
 int score;
 int level;
@@ -58,7 +60,9 @@ int main(int argc, char *argv[]){
     readLeaderboard();
     int xButton, circleButton, triangleButton, squareButton;
     curBlock = blocks[rand() % 5];
+    curBlock.xPosition = COLS / 3;
     nextBlock = blocks[rand() % 5];
+    nextBlock.xPosition = COLS / 3;
 
     while(Menu()){
         score = 0;
@@ -131,6 +135,7 @@ void dropBlock(int (*array)[COLS]){
         curBlock = nextBlock;
         checkGameOver(array);
         nextBlock = blocks[rand() % 5];
+        nextBlock.xPosition = COLS / 3;
     }
 }
 void checkGameOver(int (*array)[COLS]){
@@ -266,6 +271,21 @@ void printGame(int (*array)[COLS], int score){
     printf("Score: %d\n", score);
 }
 
+void openSettings(){
+    int answer;
+    while(answer != 3){
+        printf("Press 1 to change rows, 2 to change columns, 3 to go back\n");
+        scanf("%d", &answer);
+        if(answer == 1){
+            printf("Enter new number of rows: ");
+            scanf("%d", &ROWS);
+        }
+        else if(answer == 2){
+            printf("Enter new number of columns: ");
+            scanf("%d", &COLS);
+        }
+    }
+}
 
 int Menu(){
     int answer;
@@ -276,7 +296,7 @@ int Menu(){
             printLeaderboard();
         }
         else if(answer == 3){
-            //openSettings();//settings not implemented
+            openSettings();
         }
     }
     
@@ -286,7 +306,6 @@ int Menu(){
 void readLeaderboard() {
     FILE *file = fopen("leaderboard.csv", "r");
     if (file == NULL) {
-        printf("Could not open leaderboard.csv\n");
         return;
     }
 
@@ -308,7 +327,6 @@ void readLeaderboard() {
 void writeLeaderboard() {
     FILE *file = fopen("leaderboard.csv", "w");
     if (file == NULL) {
-        printf("Could not open leaderboard.csv for writing\n");
         return;
     }
 
