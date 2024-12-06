@@ -57,6 +57,8 @@ double timeToPass;
 double timeIncrements;
 struct Block curBlock;
 struct Block nextBlock;
+struct Block storedBlock;
+int storedEmpty = 1;
 int playAudio = 1;
 struct LeaderboardEntry leaderboard[MAX_SCORES];
 int main(int argc, char *argv[]){
@@ -68,6 +70,8 @@ int main(int argc, char *argv[]){
     nextBlock.xPosition = COLS / 3;
 
     while(Menu()){
+        storedEmpty = 1;
+        storedBlock.xPosition = COLS / 3;
         playGameAudio();
         score = 0;
         level = 1;
@@ -94,6 +98,20 @@ int main(int argc, char *argv[]){
                 }
                 else if(direction == 2){
                     dropBlockStraight(game_array);
+                }
+                else if(direction == 3){
+                    if(storedEmpty == 1){
+                        storedBlock = curBlock;
+                        storedEmpty = 0;
+                        curBlock = nextBlock;
+                        nextBlock = blocks[rand() % 5];
+                        nextBlock.xPosition = COLS / 3;
+                    }
+                    else{
+                        struct Block temp = curBlock;
+                        curBlock = storedBlock;
+                        storedBlock = temp;
+                    }
                 }
                 placeBlock(game_array);
                 printGame(game_array, score); //all this does is print the array, dw about logiccc
@@ -235,28 +253,45 @@ void printGame(int (*array)[COLS], int score){
         if(i <= 2){
             printf("    |");
             if(i == 0){
-                printf("Next Block|");
+                printf("Next Block|Stored Block|");
             }
             else {
                 printf(" ");
-                int topRow[4] = {0,0,0,0};
-                int bottomRow[4] = {0,0,0,0};
+                int topRowNext[4] = {0,0,0,0};
+                int bottomRowNext[4] = {0,0,0,0};
+                int topRowStored[4] = {0,0,0,0};
+                int bottomRowStored[4] = {0,0,0,0};
+                
                 for(int j = 0; j < 4; j++){
                     if(nextBlock.shape[j][0] == 0){
-                        topRow[nextBlock.shape[j][1]] = 1;
+                        topRowNext[nextBlock.shape[j][1]] = 1;
                     }
                     if(nextBlock.shape[j][0] == 1){
-                        bottomRow[nextBlock.shape[j][1]] = 1;
+                        bottomRowNext[nextBlock.shape[j][1]] = 1;
+                    }
+                    if(storedBlock.shape[j][0] == 0){
+                        topRowStored[storedBlock.shape[j][1]] = 1;
+                    }
+                    if(storedBlock.shape[j][0] == 1){
+                        bottomRowStored[storedBlock.shape[j][1]] = 1;
                     }
                 }
                 if(i == 1){
                     for(int j = 0; j < 4; j++){
-                        printf("%d ", topRow[j]);
+                        printf("%d ", topRowNext[j]);
+                    }
+                    printf(" |");
+                    for(int j = 0; j < 4; j++){
+                        printf("%d ", topRowStored[j]);
                     }
                 }
                 if(i == 2){
                     for(int j = 0; j < 4; j++){
-                        printf("%d ", bottomRow[j]);
+                        printf("%d ", bottomRowNext[j]);
+                    }
+                    printf(" |");
+                    for(int j = 0; j < 4; j++){
+                        printf("%d ", bottomRowStored[j]);
                     }
                 }
                 printf(" |");
