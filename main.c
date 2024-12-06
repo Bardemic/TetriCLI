@@ -43,6 +43,7 @@ void checkGameOver(int (*array)[COLS]);
 void readLeaderboard();
 void writeLeaderboard();
 void addLeaderboardEntry();
+void printLeaderboard();
 int numScores = 0;
 int score;
 int level;
@@ -268,8 +269,17 @@ void printGame(int (*array)[COLS], int score){
 
 int Menu(){
     int answer;
-    printf("1 to play, 0 to quit\n");
-    scanf("%d", &answer);
+    while(answer != 1){
+        printf("1 to play, 2 for leaderboard, 3 for settings, 0 to quit\n");
+        scanf("%d", &answer);
+        if(answer == 2){
+            printLeaderboard();
+        }
+        else if(answer == 3){
+            //openSettings();//settings not implemented
+        }
+    }
+    
     return answer;
 }
 
@@ -328,4 +338,27 @@ void addLeaderboardEntry(){
     leaderboard[numScores].score = score;
     numScores++;
     writeLeaderboard();
+}
+
+void printLeaderboard() {
+    for (int i = 0; i < numScores - 1; i++) {
+        for (int j = 0; j < numScores - i - 1; j++) {
+            if (leaderboard[j].score < leaderboard[j + 1].score) {
+                struct LeaderboardEntry temp = leaderboard[j];
+                leaderboard[j] = leaderboard[j + 1];
+                leaderboard[j + 1] = temp;
+            }
+        }
+    }
+    printf("\nTop Scores:\n");
+    printf("-----------\n");
+    for (int i = 0; i < 3 && i < numScores; i++) {
+        printf("%d. %s: %d (%s)\n", 
+            i + 1,
+            leaderboard[i].name,
+            leaderboard[i].score,
+            leaderboard[i].date
+        );
+    }
+    printf("\n");
 }
