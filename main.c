@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define ROWS 10
-#define COLS 8
+#define ROWS 8
+#define COLS 6
 #define BLOCK 4
 #define EMPTY 0
 struct Block {
@@ -56,6 +56,7 @@ int main(int argc, char *argv[]){
                 shiftBlock(&b1, game_array, direction);
                 placeBlock(game_array, b1);
                 printGame(game_array, score); //all this does is print the array, dw about logiccc
+                tetrisCheck(game_array);
                 dropBlock(&b1, game_array);
             }
             
@@ -110,17 +111,11 @@ void tetrisCheck(int (*array)[COLS]){
             }
         }
         if(total == COLS){
-            for(int j = 0; j < COLS; j++){
-                array[i][j] = EMPTY;
-            }
-            for(int y = i; y > 0; y--){
-                for(int x = 0; y < COLS; x++) {
-                    array[y][x] = array[y-1][x];
-
+            for(int j = i - 1; j >= 0; j--){
+                for(int k = 0; k < COLS; k++) {
+                    array[j + 1][k] = array[j][k];
                 }
-
             }
-            i--;
         }
     }
 }
