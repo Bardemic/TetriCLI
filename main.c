@@ -36,6 +36,7 @@ int level;
 int gameOver;
 double timePassed;
 double timeToPass;
+double timeIncrements;
 struct Block curBlock;
 struct Block nextBlock;
 int main(int argc, char *argv[]){
@@ -49,6 +50,7 @@ int main(int argc, char *argv[]){
         gameOver = 0;
         timePassed = 0;
         timeToPass = 0.5;
+        timeIncrements = 1.0;
         int game_array[ROWS][COLS];
         for(int i = 0; i < ROWS; i++){
             for(int j = 0; j < COLS; j++){
@@ -137,6 +139,13 @@ void tetrisCheck(int (*array)[COLS]){
                 }
             }
         }
+    }
+}
+
+void checkIncreaseLevel(){
+    if(score >= level * 500){
+        level++;
+        timeIncrements *= 0.95;
     }
 }
 
