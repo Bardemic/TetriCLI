@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #define ROWS 8
-#define COLS 4
+#define COLS 6
 #define BLOCK 4
 #define EMPTY 0
 struct Block {
@@ -10,9 +12,19 @@ struct Block {
     int shape[4][2];
 };
 
-void dropBlock(struct Block *curBlock);
+struct Block blocks[] = {
+    {COLS / 2, 0, {{0,0}, {0,1}, {0,2}, {0,3}}},
+    {COLS / 2, 0, {{0,0}, {1,0}, {0,1}, {1,1}}},
+    {COLS / 2, 0, {{0,0}, {1,0}, {1,1}, {1,2}}},
+    {COLS / 2, 0, {{1,0}, {1,1}, {1,2}, {0,2}}},
+    {COLS / 2, 0, {{0,1}, {1,0}, {1,1}, {1,2}}}
+};
+
+
+void dropBlock(struct Block *curBlock, int (*array)[COLS]);
 void tetrisCheck(int (*array)[COLS]);
 void placeBlock(int (*array)[COLS], struct Block curBlock);
+int checkCollision(int (*array)[COLS], struct Block curBlock);
 void printGame(int (*array)[COLS]);
 int playGame();
 
@@ -29,12 +41,12 @@ int main(int argc, char *argv[]){
             }
             printf("\n");
         }
-        struct Block b1 = {0, 0, {{0,0},{0,1},{0,2},{0,3}}};
+        struct Block b1 = blocks[1];
         while(1){
             
             placeBlock(my_array, b1);
             printGame(my_array);
-            dropBlock(&b1);
+            dropBlock(&b1, my_array);
             sleep(1);
             
         }
@@ -47,9 +59,17 @@ int main(int argc, char *argv[]){
 }
 
 
-void dropBlock(struct Block *curBlock){
+void dropBlock(struct Block *curBlock, int (*array)[COLS]){
+    int count = 0;
     for(int i = 0; i < 4; i++){
-    curBlock->shape[i][0]++;
+        if(checkCollision(array, *curBlock)){
+            count += 1;
+        }
+    }
+    if(count == 0){
+        for(int i = 0; i < 4; i++){
+            curBlock->shape[i][0]++;
+        }
     }
 }
 
@@ -68,14 +88,25 @@ void tetrisCheck(int (*array)[COLS]){
             for(int y = i; y > 0; y--){
                 for(int x = 0; y < COLS; x++) {
                     array[y][x] = array[y-1][x];
+
                 }
+
             }
             i--;
         }
     }
 }
 
-
+int checkCollision(int (*array)[COLS], struct Block curBlock){
+    for(int i = 0; i < 4; i++){
+        int curRow = curBlock.shape[i][0] + curBlock.yPosition;
+        int curCol = curBlock.shape[i][1] + curBlock.xPosition;
+        if(curRow + 1 >= ROWS || curCol + 1 >= COLS || curCol < 0){
+            return 1;
+        }
+    }
+    return 0;
+}
 void placeBlock(int (*array)[COLS], struct Block curBlock){
     for(int i = 0; i < ROWS; i++){
         for(int j = 0; j < COLS; j++){
@@ -83,7 +114,7 @@ void placeBlock(int (*array)[COLS], struct Block curBlock){
         }
     }
     for(int i = 0; i < 4; i++){
-        array[curBlock.shape[i][0]][curBlock.shape[i][1]] = BLOCK;
+        array[curBlock.shape[i][0] + curBlock.yPosition][curBlock.shape[i][1] + curBlock.xPosition] = BLOCK;
     }
 
 }
