@@ -29,7 +29,7 @@ struct Block blocks[] = {
     {0, 0, {{0,1}, {1,0}, {1,1}, {1,2}}}
 };
 
-int ROWS = 5;
+int ROWS = 10;
 int COLS = 5;
 
 void dropBlock(int (*array)[COLS]);
@@ -46,6 +46,7 @@ void writeLeaderboard();
 void addLeaderboardEntry();
 void printLeaderboard();
 void openSettings();
+void dropBlockStraight(int (*array)[COLS]);
 int numScores = 0;
 int score;
 int level;
@@ -85,7 +86,12 @@ int main(int argc, char *argv[]){
                 timeToPass += 1;
                 int direction = 0;
                 scanf("%d", &direction);
-                shiftBlock(game_array, direction);
+                if(direction == 1 || direction == 0 || direction == -1){
+                    shiftBlock(game_array, direction);  
+                }
+                else if(direction == 2){
+                    dropBlockStraight(game_array);
+                }
                 placeBlock(game_array);
                 printGame(game_array, score); //all this does is print the array, dw about logiccc
                 tetrisCheck(game_array);
@@ -119,12 +125,7 @@ void shiftBlock(int (*array)[COLS], int direction /*1 for right, -1 for left*/){
 }
 
 void dropBlock(int (*array)[COLS]){
-    int count = 0;
-    for(int i = 0; i < 4; i++){
-        if(checkCollisionDrop(array)){
-            count += 1;
-        }
-    }
+    int count = checkCollisionDrop(array);
     if(count == 0){
         for(int i = 0; i < 4; i++){
             array[curBlock.shape[i][0] + curBlock.yPosition][curBlock.shape[i][1] + curBlock.xPosition] = EMPTY;
@@ -283,6 +284,15 @@ void openSettings(){
         else if(answer == 2){
             printf("Enter new number of columns: ");
             scanf("%d", &COLS);
+        }
+    }
+}
+
+void dropBlockStraight(int (*array)[COLS]){
+    while(checkCollisionDrop(array) == 0){
+        for(int i = 0; i < 4; i++){
+            array[curBlock.shape[i][0] + curBlock.yPosition][curBlock.shape[i][1] + curBlock.xPosition] = EMPTY;
+            curBlock.shape[i][0]++;
         }
     }
 }
