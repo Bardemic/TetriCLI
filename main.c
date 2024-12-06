@@ -1,11 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
+#include <time.h>
 
 #define ROWS 5
 #define COLS 6
 #define BLOCK 4
 #define EMPTY 0
+#define MAX_SCORES 100
+#define MAX_NAME_LENGTH 4
+
+struct LeaderboardEntry {
+    char name[MAX_NAME_LENGTH];
+    int score;
+    char date[11];
+};
 struct Block {
     int xPosition;
     int yPosition;
@@ -30,7 +40,10 @@ int Menu();
 int checkCollisionLR(int (*array)[COLS], int direction /*1 for right, -1 for left*/);
 void shiftBlock(int (*array)[COLS], int direction /*1 for right, -1 for left*/);
 void checkGameOver(int (*array)[COLS]);
-
+void readLeaderboard();
+void writeLeaderboard();
+void addLeaderboardEntry();
+int numScores = 0;
 int score;
 int level;
 int gameOver;
@@ -39,7 +52,9 @@ double timeToPass;
 double timeIncrements;
 struct Block curBlock;
 struct Block nextBlock;
+struct LeaderboardEntry leaderboard[MAX_SCORES];
 int main(int argc, char *argv[]){
+    readLeaderboard();
     int xButton, circleButton, triangleButton, squareButton;
     curBlock = blocks[rand() % 5];
     nextBlock = blocks[rand() % 5];
@@ -74,6 +89,7 @@ int main(int argc, char *argv[]){
             
         }
         printf("Game Over\n");
+        addLeaderboardEntry();
 
     }
 
@@ -255,4 +271,61 @@ int Menu(){
     printf("1 to play, 0 to quit\n");
     scanf("%d", &answer);
     return answer;
+}
+
+void readLeaderboard() {
+    FILE *file = fopen("leaderboard.csv", "r");
+    if (file == NULL) {
+        printf("Could not open leaderboard.csv\n");
+        return;
+    }
+
+    char line[256];
+    while (fgets(line, sizeof(line), file) && numScores < MAX_SCORES) {
+        char name[MAX_NAME_LENGTH];
+        int score;
+        if (sscanf(line, "%[^,],%d", name, &score) == 2) {
+            strncpy(leaderboard[numScores].name, name, MAX_NAME_LENGTH - 1);
+            leaderboard[numScores].name[MAX_NAME_LENGTH - 1] = '\0';
+            leaderboard[numScores].score = score;
+            numScores++;
+        }
+    }
+
+    fclose(file);
+}
+
+void writeLeaderboard() {
+    FILE *file = fopen("leaderboard.csv", "w");
+    if (file == NULL) {
+        printf("Could not open leaderboard.csv for writing\n");
+        return;
+    }
+
+    for (int i = 0; i < numScores; i++) {
+        fprintf(file, "%s,%d,%s\n", leaderboard[i].name, leaderboard[i].score, leaderboard[i].date);
+    }
+
+    fclose(file);
+}
+
+void addLeaderboardEntry(){
+    printf("Enter your name: ");
+    char name[MAX_NAME_LENGTH];
+    scanf("%s", name);
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    char date[11];
+    strftime(date, sizeof(date), "%Y-%m-%d", tm);
+    
+    while(strlen(name) > MAX_NAME_LENGTH - 1){
+        printf("Name too long, %d characters max\n", MAX_NAME_LENGTH - 1);
+        scanf("%s", name);
+    }
+    strcpy(leaderboard[numScores].date, date);
+    strncpy(leaderboard[numScores].name, name, MAX_NAME_LENGTH - 1);
+    leaderboard[numScores].name[MAX_NAME_LENGTH - 1] = '\0';
+    leaderboard[numScores].score = score;
+    numScores++;
+    writeLeaderboard();
 }
